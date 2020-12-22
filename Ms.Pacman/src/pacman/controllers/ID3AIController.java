@@ -1,5 +1,6 @@
 package pacman.controllers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import dataRecording.DataSaverLoader;
@@ -15,7 +16,7 @@ public class ID3AIController extends Controller<MOVE>{
 
 	private Random rnd=new Random();
 	private MOVE[] allMoves=MOVE.values();
-	private String[] attributeList;
+	private List <String> attributeList = new ArrayList<String>();
 	private Node RootNode = new Node();
 	private DataTuple[] DataSet=DataSaverLoader.LoadPacManData();
 	
@@ -28,7 +29,7 @@ public class ID3AIController extends Controller<MOVE>{
 			node.setLabel(DataSet[0].getDirectionChosen());
 			return node;
 		}
-		if (attributeList.length==0){
+		if (attributeList.size()==0){
 			node.setLeaf(true);
 			node.setLabel(FindMajorityMove(DataSet));
 			return node;
@@ -93,20 +94,72 @@ public class ID3AIController extends Controller<MOVE>{
 		return MajorityMove;
 
 	}
-	public int SelectAttribute(String[] attributeList) {
+	public int SelectAttribute(DataTuple [] DataSet, List<String> attributeList) {
 		int nbrPossible;
-		
-		for (int i=0;i<attributeList.length;i++) {
-			switch (attributeList[i]) {
-			case "DirectionSue":
+		int [] subAttributes = null;
+		for (String attribute: attributeList) {
+			
+			
+			switch (attribute) {
+			case "SueDir":
+				subAttributes = new int [4];
+				for (DataTuple dataRow: DataSet) {
+					subAttributes[dataRow.getSueDir().ordinal()]++;
+				}
+			case "InkyDir":
+				subAttributes = new int [4];
+				for (DataTuple dataRow: DataSet) {
+					subAttributes[dataRow.getInkyDir().ordinal()]++;
+				}
+			case "BlinkyDir":
+				subAttributes = new int [4];
+				for (DataTuple dataRow: DataSet) {
+					subAttributes[dataRow.getBlinkyDir().ordinal()]++;
+				}
+			case "PinkyDir":
+				subAttributes = new int [4];
+				for (DataTuple dataRow: DataSet) {
+					subAttributes[dataRow.getPinkyDir().ordinal()]++;
+				}
+			case "SueDist":
+				subAttributes = new int [5];
+				for (DataTuple dataRow: DataSet) {
+					subAttributes[(dataRow.getSueDist().ordinal())]++;
+				}
+			case "InkyDist":
+				subAttributes = new int [5];
+				for (DataTuple dataRow: DataSet) {
+					subAttributes[dataRow.getInkyDist().ordinal()]++;
+				}
+			case "BlinkyDist":
+				subAttributes = new int [5];
+				for (DataTuple dataRow: DataSet) {
+					subAttributes[dataRow.getBlinkyDir().ordinal()]++;
+				}
+			case "PinkyDist":
+				subAttributes = new int [5];
+				for (DataTuple dataRow: DataSet) {
+					subAttributes[dataRow.getPinkyDir().ordinal()]++;
+				}
+			default:
+				subAttributes = new int [0];
 			}
 		}
-		 
+		double Entropy = CalcEntropy(subAttributes, subAttributes.length, DataSet.length);
 		return 1;	
+	}
+	
+	public double CalcEntropy(int [] attributeFrequency, int nbrOfPossibilities, int dataSize) {
+		double sum = 0;
+		for(int i = 0; i < attributeFrequency.length; i++) {
+			sum -= ((double) attributeFrequency[i]/nbrOfPossibilities) * Math.log10((double)attributeFrequency[i]/nbrOfPossibilities*Math.log10(2));
+		}
+		return nbrOfPossibilities/dataSize*sum;
 	}
 	public void PreprocessingData(DataTuple[] Dataset) {
 		
 	}
+	
 	
 	
 	/* (non-Javadoc)

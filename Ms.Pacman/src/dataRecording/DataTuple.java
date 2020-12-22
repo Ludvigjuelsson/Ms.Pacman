@@ -12,10 +12,16 @@ public class DataTuple {
 		VERY_LOW, LOW, MEDIUM, HIGH, VERY_HIGH, NONE;
 
 		public static DiscreteTag DiscretizeDouble(double aux) {
-			if (aux <= 0.5)
+			if (aux < 0.1)
+				return DiscreteTag.VERY_LOW;
+			else if (aux <= 0.3)
 				return DiscreteTag.LOW;
-			else
+			else if (aux <= 0.5)
+				return DiscreteTag.MEDIUM;
+			else if (aux <= 0.7)
 				return DiscreteTag.HIGH;
+			else
+				return DiscreteTag.VERY_HIGH;
 		}
 	}
 
@@ -292,32 +298,32 @@ public class DataTuple {
 		this.isSueEdible = isSueEdible;
 	}
 
-	public int getBlinkyDist() {
-		return blinkyDist;
+	public DiscreteTag getBlinkyDist() {
+		return discretizeDistance(blinkyDist);
 	}
 
 	public void setBlinkyDist(int blinkyDist) {
 		this.blinkyDist = blinkyDist;
 	}
 
-	public int getInkyDist() {
-		return inkyDist;
+	public DiscreteTag getInkyDist() {
+		return discretizeDistance(inkyDist);
 	}
 
 	public void setInkyDist(int inkyDist) {
 		this.inkyDist = inkyDist;
 	}
 
-	public int getPinkyDist() {
-		return pinkyDist;
+	public DiscreteTag getPinkyDist() {
+		return discretizeDistance(pinkyDist);
 	}
 
 	public void setPinkyDist(int pinkyDist) {
 		this.pinkyDist = pinkyDist;
 	}
 
-	public int getSueDist() {
-		return sueDist;
+	public DiscreteTag getSueDist() {
+		return discretizeDistance(sueDist);
 	}
 
 	public void setSueDist(int sueDist) {
