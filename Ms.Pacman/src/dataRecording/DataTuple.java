@@ -258,9 +258,154 @@ public class DataTuple {
 		return DiscreteTag.DiscretizeDouble(aux);
 	}
 
-	public MOVE DirectionChosen() {
-		return this.DirectionChosen;
-		
+
+
+	public MOVE getDirectionChosen() {
+		return DirectionChosen;
+	}
+
+
+
+	public boolean isBlinkyEdible() {
+		return isBlinkyEdible;
+	}
+
+	
+
+	public boolean isInkyEdible() {
+		return isInkyEdible;
+	}
+
+
+
+	public boolean isPinkyEdible() {
+		return isPinkyEdible;
+	}
+
+
+
+	public boolean isSueEdible() {
+		return isSueEdible;
+	}
+
+	public void setSueEdible(boolean isSueEdible) {
+		this.isSueEdible = isSueEdible;
+	}
+
+	public int getBlinkyDist() {
+		return blinkyDist;
+	}
+
+	public void setBlinkyDist(int blinkyDist) {
+		this.blinkyDist = blinkyDist;
+	}
+
+	public int getInkyDist() {
+		return inkyDist;
+	}
+
+	public void setInkyDist(int inkyDist) {
+		this.inkyDist = inkyDist;
+	}
+
+	public int getPinkyDist() {
+		return pinkyDist;
+	}
+
+	public void setPinkyDist(int pinkyDist) {
+		this.pinkyDist = pinkyDist;
+	}
+
+	public int getSueDist() {
+		return sueDist;
+	}
+
+	public void setSueDist(int sueDist) {
+		this.sueDist = sueDist;
+	}
+
+	public MOVE getBlinkyDir() {
+		return blinkyDir;
+	}
+
+	public void setBlinkyDir(MOVE blinkyDir) {
+		this.blinkyDir = blinkyDir;
+	}
+
+	public MOVE getInkyDir() {
+		return inkyDir;
+	}
+
+	public void setInkyDir(MOVE inkyDir) {
+		this.inkyDir = inkyDir;
+	}
+
+	public MOVE getPinkyDir() {
+		return pinkyDir;
+	}
+
+	public void setPinkyDir(MOVE pinkyDir) {
+		this.pinkyDir = pinkyDir;
+	}
+
+	public MOVE getSueDir() {
+		return sueDir;
+	}
+
+	public void setSueDir(MOVE sueDir) {
+		this.sueDir = sueDir;
+	}
+
+	public int getMazeIndex() {
+		return mazeIndex;
+	}
+
+	public int getCurrentLevel() {
+		return currentLevel;
+	}
+
+	public int getPacmanPosition() {
+		return pacmanPosition;
+	}
+
+	public int getPacmanLivesLeft() {
+		return pacmanLivesLeft;
+	}
+
+	public int getCurrentScore() {
+		return currentScore;
+	}
+
+	public int getTotalGameTime() {
+		return totalGameTime;
+	}
+
+	public int getCurrentLevelTime() {
+		return currentLevelTime;
+	}
+
+	public int getNumOfPillsLeft() {
+		return numOfPillsLeft;
+	}
+
+	public int getNumOfPowerPillsLeft() {
+		return numOfPowerPillsLeft;
+	}
+
+	public int getNumberOfNodesInLevel() {
+		return numberOfNodesInLevel;
+	}
+
+	public int getNumberOfTotalPillsInLevel() {
+		return numberOfTotalPillsInLevel;
+	}
+
+	public int getNumberOfTotalPowerPillsInLevel() {
+		return numberOfTotalPowerPillsInLevel;
+	}
+
+	public int getMaximumDistance() {
+		return maximumDistance;
 	}
 
 }
