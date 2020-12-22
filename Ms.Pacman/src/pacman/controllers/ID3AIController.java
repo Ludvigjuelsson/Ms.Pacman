@@ -33,7 +33,7 @@ public class ID3AIController extends Controller<MOVE>{
 			node.setLabel(FindMajorityMove(DataSet));
 			return node;
 			}
-		Attribute=SelectAttribute(DataSet, attributeList);
+		String attribute=SelectAttribute(DataSet, attributeList);
 			
 		}
 		
@@ -94,6 +94,14 @@ public class ID3AIController extends Controller<MOVE>{
 
 	}
 	public int SelectAttribute(String[] attributeList) {
+		int nbrPossible;
+		
+		for (int i=0;i<attributeList.length;i++) {
+			switch (attributeList[i]) {
+			case "DirectionSue":
+			}
+		}
+		 
 		return 1;	
 	}
 	public void PreprocessingData(DataTuple[] Dataset) {
