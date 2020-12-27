@@ -18,13 +18,13 @@ public class ID3AIController extends Controller<MOVE>{
 
 	private Random rnd=new Random();
 	private MOVE[] allMoves=MOVE.values();
-	private List <String> attributeList=new ArrayList<String>();
-	private Node RootNode = new Node();
+	private List <String> attributeList=new ArrayList<String>();//This should be passed down with every iteration. right now it is not
+	private Node RootNode;
 	
 	
 	
-	public Node GenerateTree(List<LinkedHashMap> processedList) {
-		Node node= new Node();
+	public Node GenerateTree(Node node) {
+		List<LinkedHashMap> processedList=node.getDataSet();
 		
 		//System.out.println(processedList);
 		if (isAllMovesSame(processedList)) {
@@ -40,15 +40,20 @@ public class ID3AIController extends Controller<MOVE>{
 		System.out.println(attributeList);
 		node.setLabel(attributeList.get(0)); // change to get the one with least entropy
 		attributeList.remove(0);
-		node.CreateChildNode(processedList);
-		
+		List<Node> childNodes = node.CreateChildNodes(processedList);
+		for (Node child:childNodes) {
+			GenerateTree(child);
+		}
 		
 		//String attribute=SelectAttribute(DataSet, attributeList);
 		//String CurrentAttribute= attributeList.get(0);
 		return node;
 		}	
 	
-	
+	public Node setandgetroot(List<LinkedHashMap> processedList) {
+		RootNode=new Node(processedList);
+		return RootNode;
+	}
 	public boolean isAllMovesSame(List<LinkedHashMap> processedList) {
 		String outCome =processedList.get(0).get("Direction").toString();
 		boolean isAllSame=true;
@@ -187,6 +192,7 @@ public class ID3AIController extends Controller<MOVE>{
 		for (int i=0;i<DataSet.length;i++) {
 			LinkedHashMap<String,String> map=new LinkedHashMap<String, String>();
 			map.put("PinkyDist",DataSet[i].getPinkyDist().toString());
+			
 			map.put("BlinkyDist", DataSet[i].getBlinkyDist().toString());
 			map.put("SueDist", DataSet[i].getSueDist().toString());
 			map.put("InkyDist", DataSet[i].getInkyDist().toString());
@@ -218,7 +224,16 @@ public class ID3AIController extends Controller<MOVE>{
 	private class Node {
 		private boolean isLeaf=false;
 		private String label;
-		private List<Node> NodeList;
+		private List<Node> ChildNodes=new ArrayList<Node>();;
+		private List<LinkedHashMap> DataSet=new ArrayList<LinkedHashMap>();
+		
+		public Node(List<LinkedHashMap> subSet) {
+			this.DataSet=subSet;
+			System.out.println("New Node Created");
+			System.out.println(DataSet.get(0).get("PinkyDist"));
+	
+		}
+		
 		public boolean isLeaf() {
 			return isLeaf;
 		}
@@ -232,39 +247,51 @@ public class ID3AIController extends Controller<MOVE>{
 			this.label = string;
 		}
 		public List<Node> getNodeList() {
-			return NodeList;
+			return ChildNodes;
 		}
-		public void setNodeList(List<Node> nodeList) {
-			NodeList = nodeList;
+		public List<LinkedHashMap> getDataSet() {
+			return this.DataSet;
 		}
+	
 		
-		public void CreateChildNode(List<LinkedHashMap> mapList) {
+		public List<Node> CreateChildNodes(List<LinkedHashMap> mapList) {
 			List<List<LinkedHashMap>> SubSets = new ArrayList<List<LinkedHashMap>>();
+			//System.out.println(this.label);
 			for (LinkedHashMap map : mapList) {
 				boolean added = false;
-				String mapLabel = map.get(label).toString();
+				String mapValue = map.get(label).toString();
+				//System.out.println(mapList.size());
 				for (List<LinkedHashMap> SubSet : SubSets) {
 					if (SubSet.get(0) != null) {
-						if (SubSet.get(0).get(label).toString().equals(mapLabel)) {
+						if (SubSet.get(0).get(label).toString().equals(mapValue)) {
 							SubSet.add(map);
+							
 							added = true;
 							break;
 						}
 					}
-				}
-				if (added == false) {
-					List<LinkedHashMap> temp = new ArrayList<LinkedHashMap>();
-					temp.add(map);
-					SubSets.add(temp);
+				
 				}
 				
-			}
-			for (List<LinkedHashMap> SubSet : SubSets) {
-				for (LinkedHashMap map : SubSet) {
-					System.out.println(map);
+				if (added == false) {
+					List<LinkedHashMap> subset = new ArrayList<LinkedHashMap>();
+					//System.out.println(map.get(label));
+					
+					subset.add(map);
+					SubSets.add(subset);
+					
 				}
-			
+				//System.out.println(SubSets.get(0).size());
+				
 			}
+			
+			
+			System.out.println(SubSets.size());
+			for (List<LinkedHashMap> SubSet : SubSets) {
+				ChildNodes.add(new Node(SubSet));	
+			}
+			//System.out.println(SubSets.get(3));
+			return ChildNodes;//System.out.println(ChildNodes.get(2).getDataSet().toString());
 		}
 		
 	}
@@ -277,7 +304,8 @@ public class ID3AIController extends Controller<MOVE>{
 		//private List<LinkedHashMap> processedList=new ArrayList<LinkedHashMap>();
 		ID3AIController cont=new ID3AIController();
 		List<LinkedHashMap>processedList= cont.PreprocessingData(DataSet);
-		cont.GenerateTree(processedList);
+		Node Root=cont.setandgetroot(processedList);
+		cont.GenerateTree(Root);
 		
 		
 	}
