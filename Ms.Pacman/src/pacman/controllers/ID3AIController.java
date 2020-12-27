@@ -8,6 +8,8 @@ import dataRecording.DataTuple;
 import dataRecording.DataTuple.DiscreteTag;
 
 import java.util.Random;
+import java.util.function.Function;
+
 import pacman.game.Game;
 import pacman.game.Constants.MOVE;
 import pacman.controllers.Controller;
@@ -16,53 +18,57 @@ public class ID3AIController extends Controller<MOVE>{
 
 	private Random rnd=new Random();
 	private MOVE[] allMoves=MOVE.values();
-	private List <String> attributeList = new ArrayList<String>();
+	
+	private List <Function> attributeList=new ArrayList<Function>();
 	private Node RootNode = new Node();
-	private DataTuple[] DataSet=DataSaverLoader.LoadPacManData();
 	
 	
-	public Node GenerateTree(DataTuple[] DataSet) {
+	
+	public Node GenerateTree(List<HashMap> processedList) {
 		Node node= new Node();
 		
-		if (isAllMovesSame(DataSet)) {
+		if (isAllMovesSame(processedList)) {
 			node.setLeaf(true);
-			node.setLabel(DataSet[0].getDirectionChosen());
+			node.setLabel(processedList.get(0).get("Direction").toString());
 			return node;
 		}
 		if (attributeList.size()==0){
 			node.setLeaf(true);
-			node.setLabel(FindMajorityMove(DataSet));
+			node.setLabel(FindMajorityMove(processedList));
 			return node;
 			}
-		String attribute=SelectAttribute(DataSet, attributeList);
-			
+		
+		//String attribute=SelectAttribute(DataSet, attributeList);
+		//String CurrentAttribute= attributeList.get(0);
+		return node;
 		}
 		
 		
-	public boolean isAllMovesSame(DataTuple[] DataSet) {
-		MOVE outCome =DataSet[0].getDirectionChosen();
-	
+	public boolean isAllMovesSame(List<HashMap> processedList) {
+		String outCome =processedList.get(0).get("Direction").toString();
+		//System.out.println(processedList.get(0).get("Direction").getClass());
 		boolean isAllSame=true;
-		for (int i=1; i<DataSet.length;i++) {
-			if(DataSet[i].getDirectionChosen()!=outCome) {
+		
+		for (int i=1; i<processedList.size();i++) {
+			if(!processedList.get(0).get("Direction").toString().equals(outCome)) {
 				isAllSame=false;
 				break;
 			}
 		}
 		return isAllSame;
 	}
-	public MOVE FindMajorityMove(DataTuple[] DataSet) {
+	public String FindMajorityMove(ArrayList<HashMap> processedList) {
 		int sumLeft,sumRight,sumUp,sumDown,sumNeutral;
 		sumLeft=0;sumRight=0;sumUp=0;sumDown=0;sumNeutral=0;
 		int maxVal=0;
-		MOVE MajorityMove=MOVE.NEUTRAL;
-		for (int i=0; i<DataSet.length;i++) {
-			MOVE outCome =DataSet[i].getDirectionChosen();
-			if (outCome==MOVE.LEFT) {
+		String MajorityMove="NEUTRAL";
+		for (int i=0; i<processedList.size();i++) {
+			String outCome =processedList.get(i).get("Direction").toString();
+			if (outCome.equals("LEFT")) {
 				sumLeft++;
 				if (sumLeft>maxVal) {
 					maxVal=sumLeft;
-					MajorityMove=MOVE.LEFT;
+					MajorityMove="LEFT";
 				}
 			}else if (outCome==MOVE.RIGHT) {
 				sumRight++;
@@ -156,9 +162,34 @@ public class ID3AIController extends Controller<MOVE>{
 		}
 		return nbrOfPossibilities/dataSize*sum;
 	}
-	public void PreprocessingData(DataTuple[] Dataset) {
+
+	
+	
+	public List<HashMap> PreprocessingData(DataTuple[] DataSet) {
 		
+		List<HashMap> processedList=new ArrayList<HashMap>();
+		for (int i=0;i<DataSet.length;i++) {
+			HashMap<String,String> map=new HashMap<String, String>();
+			map.put("PinkyDist",DataSet[i].getPinkyDist().toString());
+			map.put("InkyDist", DataSet[i].getInkyDist().toString());
+			map.put("BlinkyDist", DataSet[i].getBlinkyDist().toString());
+			map.put("SueDist", DataSet[i].getSueDist().toString());
+			map.put("InkyDist", DataSet[i].getInkyDist().toString());
+			map.put("InkyDir", DataSet[i].getInkyDir().toString());
+			map.put("PinkyDir", DataSet[i].getPinkyDir().toString());
+			map.put("BlinkyDir", DataSet[i].getInkyDir().toString());
+			map.put("SueDir", DataSet[i].getSueDir().toString());
+			map.put("BlinkyEdible",Boolean.toString(DataSet[i].isBlinkyEdible()));
+			map.put("InkyEdible",Boolean.toString(DataSet[i].isInkyEdible()));
+			map.put("SueEdible",Boolean.toString(DataSet[i].isSueEdible()));
+			map.put("PinkyEdible",Boolean.toString(DataSet[i].isPinkyEdible()));
+			map.put("InkyEdible",Boolean.toString(DataSet[i].isInkyEdible()));
+			map.put("Direction",DataSet[i].getDirectionChosen().toString());
+			processedList.add(map);
+		}
+		return processedList;
 	}
+	
 	
 	
 	
@@ -172,7 +203,7 @@ public class ID3AIController extends Controller<MOVE>{
 	
 	private class Node {
 		private boolean isLeaf=false;
-		private MOVE label;
+		private String label;
 		private List<Node> NodeList;
 		public boolean isLeaf() {
 			return isLeaf;
@@ -180,11 +211,11 @@ public class ID3AIController extends Controller<MOVE>{
 		public void setLeaf(boolean isLeaf) {
 			this.isLeaf = isLeaf;
 		}
-		public MOVE getLabel() {
+		public String getLabel() {
 			return label;
 		}
-		public void setLabel(MOVE move) {
-			this.label = move;
+		public void setLabel(String string) {
+			this.label = string;
 		}
 		public List<Node> getNodeList() {
 			return NodeList;
@@ -192,12 +223,19 @@ public class ID3AIController extends Controller<MOVE>{
 		public void setNodeList(List<Node> nodeList) {
 			NodeList = nodeList;
 		}	
-		
+	
 	}
 	
 
+	
+
 	public static void main(String[] args) {
+		final DataTuple[] DataSet=DataSaverLoader.LoadPacManData();
+		//private List<HashMap> processedList=new ArrayList<HashMap>();
 		ID3AIController cont=new ID3AIController();
-		cont.GenerateTree();
+		List<HashMap>processedList= cont.PreprocessingData(DataSet);
+		cont.GenerateTree(processedList);
+		
+		
 	}
 }
