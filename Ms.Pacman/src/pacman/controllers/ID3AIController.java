@@ -1,7 +1,7 @@
 package pacman.controllers;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import dataRecording.DataSaverLoader;
 import dataRecording.DataTuple;
@@ -18,46 +18,50 @@ public class ID3AIController extends Controller<MOVE>{
 
 	private Random rnd=new Random();
 	private MOVE[] allMoves=MOVE.values();
-	
-	private List <Function> attributeList=new ArrayList<Function>();
+	private List <String> attributeList=new ArrayList<String>();
 	private Node RootNode = new Node();
 	
 	
 	
-	public Node GenerateTree(List<HashMap> processedList) {
+	public Node GenerateTree(List<LinkedHashMap> processedList) {
 		Node node= new Node();
 		
+		//System.out.println(processedList);
 		if (isAllMovesSame(processedList)) {
 			node.setLeaf(true);
 			node.setLabel(processedList.get(0).get("Direction").toString());
 			return node;
 		}
-		if (attributeList.size()==0){
+		if (attributeList.size() == 1){
 			node.setLeaf(true);
 			node.setLabel(FindMajorityMove(processedList));
 			return node;
 			}
+		System.out.println(attributeList);
+		node.setLabel(attributeList.get(0)); // change to get the one with least entropy
+		attributeList.remove(0);
+		node.CreateChildNode(processedList);
+		
 		
 		//String attribute=SelectAttribute(DataSet, attributeList);
 		//String CurrentAttribute= attributeList.get(0);
 		return node;
-		}
-		
-		
-	public boolean isAllMovesSame(List<HashMap> processedList) {
+		}	
+	
+	
+	public boolean isAllMovesSame(List<LinkedHashMap> processedList) {
 		String outCome =processedList.get(0).get("Direction").toString();
-		//System.out.println(processedList.get(0).get("Direction").getClass());
 		boolean isAllSame=true;
 		
 		for (int i=1; i<processedList.size();i++) {
-			if(!processedList.get(0).get("Direction").toString().equals(outCome)) {
+			if(!processedList.get(i).get("Direction").toString().equals(outCome)) {
 				isAllSame=false;
 				break;
 			}
 		}
 		return isAllSame;
 	}
-	public String FindMajorityMove(ArrayList<HashMap> processedList) {
+	public String FindMajorityMove(List<LinkedHashMap> processedList) {
 		int sumLeft,sumRight,sumUp,sumDown,sumNeutral;
 		sumLeft=0;sumRight=0;sumUp=0;sumDown=0;sumNeutral=0;
 		int maxVal=0;
@@ -70,29 +74,29 @@ public class ID3AIController extends Controller<MOVE>{
 					maxVal=sumLeft;
 					MajorityMove="LEFT";
 				}
-			}else if (outCome==MOVE.RIGHT) {
+			}else if (outCome.equals("RIGHT")) {
 				sumRight++;
 				if (sumRight>maxVal) {
 					maxVal=sumRight;
-					MajorityMove=MOVE.RIGHT;
+					MajorityMove="RIGHT";
 				}
-			}else if (outCome==MOVE.UP) {
+			}else if (outCome.equals("UP")) {
 				sumUp++;
 				if (sumUp>maxVal) {
 					maxVal=sumUp;
-					MajorityMove=MOVE.UP;
+					MajorityMove="UP";
 				}
-			}else if(outCome==MOVE.DOWN) {
+			}else if(outCome.equals("DOWN")) {
 				sumDown++;
 				if (sumDown>maxVal) {
 					maxVal=sumDown;
-					MajorityMove=MOVE.DOWN;
+					MajorityMove="DOWN";
 				}
 			}else {
 				sumNeutral++;
 				if (sumNeutral>maxVal) {
 					maxVal=sumNeutral;
-					MajorityMove=MOVE.NEUTRAL;
+					MajorityMove="NEUTRAL";
 				}
 			}
 			
@@ -165,13 +169,24 @@ public class ID3AIController extends Controller<MOVE>{
 
 	
 	
-	public List<HashMap> PreprocessingData(DataTuple[] DataSet) {
-		
-		List<HashMap> processedList=new ArrayList<HashMap>();
+	public List<LinkedHashMap> PreprocessingData(DataTuple[] DataSet) {
+		List<LinkedHashMap> processedList=new ArrayList<LinkedHashMap>();
+		attributeList.add("PinkyDist");
+		attributeList.add("InkyDist");
+		attributeList.add("BlinkyDist");
+		attributeList.add("SueDist");
+		attributeList.add("PinkyDir");
+		attributeList.add("InkyDir");
+		attributeList.add("BlinkyDir");
+		attributeList.add("SueDir");
+		attributeList.add("BlinkyEdible");
+		attributeList.add("InkyEdible");
+		attributeList.add("PinkyEdible");
+		attributeList.add("SueEdible");
+		attributeList.add("Direction");
 		for (int i=0;i<DataSet.length;i++) {
-			HashMap<String,String> map=new HashMap<String, String>();
+			LinkedHashMap<String,String> map=new LinkedHashMap<String, String>();
 			map.put("PinkyDist",DataSet[i].getPinkyDist().toString());
-			map.put("InkyDist", DataSet[i].getInkyDist().toString());
 			map.put("BlinkyDist", DataSet[i].getBlinkyDist().toString());
 			map.put("SueDist", DataSet[i].getSueDist().toString());
 			map.put("InkyDist", DataSet[i].getInkyDist().toString());
@@ -183,7 +198,6 @@ public class ID3AIController extends Controller<MOVE>{
 			map.put("InkyEdible",Boolean.toString(DataSet[i].isInkyEdible()));
 			map.put("SueEdible",Boolean.toString(DataSet[i].isSueEdible()));
 			map.put("PinkyEdible",Boolean.toString(DataSet[i].isPinkyEdible()));
-			map.put("InkyEdible",Boolean.toString(DataSet[i].isInkyEdible()));
 			map.put("Direction",DataSet[i].getDirectionChosen().toString());
 			processedList.add(map);
 		}
@@ -222,8 +236,37 @@ public class ID3AIController extends Controller<MOVE>{
 		}
 		public void setNodeList(List<Node> nodeList) {
 			NodeList = nodeList;
-		}	
-	
+		}
+		
+		public void CreateChildNode(List<LinkedHashMap> mapList) {
+			List<List<LinkedHashMap>> SubSets = new ArrayList<List<LinkedHashMap>>();
+			for (LinkedHashMap map : mapList) {
+				boolean added = false;
+				String mapLabel = map.get(label).toString();
+				for (List<LinkedHashMap> SubSet : SubSets) {
+					if (SubSet.get(0) != null) {
+						if (SubSet.get(0).get(label).toString().equals(mapLabel)) {
+							SubSet.add(map);
+							added = true;
+							break;
+						}
+					}
+				}
+				if (added == false) {
+					List<LinkedHashMap> temp = new ArrayList<LinkedHashMap>();
+					temp.add(map);
+					SubSets.add(temp);
+				}
+				
+			}
+			for (List<LinkedHashMap> SubSet : SubSets) {
+				for (LinkedHashMap map : SubSet) {
+					System.out.println(map);
+				}
+			
+			}
+		}
+		
 	}
 	
 
@@ -231,9 +274,9 @@ public class ID3AIController extends Controller<MOVE>{
 
 	public static void main(String[] args) {
 		final DataTuple[] DataSet=DataSaverLoader.LoadPacManData();
-		//private List<HashMap> processedList=new ArrayList<HashMap>();
+		//private List<LinkedHashMap> processedList=new ArrayList<LinkedHashMap>();
 		ID3AIController cont=new ID3AIController();
-		List<HashMap>processedList= cont.PreprocessingData(DataSet);
+		List<LinkedHashMap>processedList= cont.PreprocessingData(DataSet);
 		cont.GenerateTree(processedList);
 		
 		
