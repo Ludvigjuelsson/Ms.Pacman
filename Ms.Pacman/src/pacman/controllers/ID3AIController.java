@@ -38,7 +38,7 @@ public class ID3AIController extends Controller<MOVE>{
 			node.setLeaf(true);
 			return node;
 			}
-		System.out.println(attributeList);
+		//System.out.println(attributeList);
 		String currentAttribute=attributeList.get(0);
 		node.setLabel(currentAttribute); // change to get the one with least entropy
 		
@@ -96,7 +96,7 @@ public class ID3AIController extends Controller<MOVE>{
 		}
 		
 		
-		System.out.println(SubSets.size());
+		//System.out.println(SubSets.size());
 		for (List<LinkedHashMap> SubSet : SubSets) {
 			ChildNodes.add(new Node(SubSet));	
 		}
@@ -146,65 +146,32 @@ public class ID3AIController extends Controller<MOVE>{
 		return MajorityMove;
 
 	}
-	public int SelectAttribute(DataTuple [] DataSet, List<String> attributeList) {
-		int nbrPossible;
-		int [] subAttributes = null;
-		for (String attribute: attributeList) {
-			
-			
-			switch (attribute) {
-			case "SueDir":
-				subAttributes = new int [4];
-				for (DataTuple dataRow: DataSet) {
-					subAttributes[dataRow.getSueDir().ordinal()]++;
-				}
-			case "InkyDir":
-				subAttributes = new int [4];
-				for (DataTuple dataRow: DataSet) {
-					subAttributes[dataRow.getInkyDir().ordinal()]++;
-				}
-			case "BlinkyDir":
-				subAttributes = new int [4];
-				for (DataTuple dataRow: DataSet) {
-					subAttributes[dataRow.getBlinkyDir().ordinal()]++;
-				}
-			case "PinkyDir":
-				subAttributes = new int [4];
-				for (DataTuple dataRow: DataSet) {
-					subAttributes[dataRow.getPinkyDir().ordinal()]++;
-				}
-			case "SueDist":
-				subAttributes = new int [5];
-				for (DataTuple dataRow: DataSet) {
-					subAttributes[(dataRow.getSueDist().ordinal())]++;
-				}
-			case "InkyDist":
-				subAttributes = new int [5];
-				for (DataTuple dataRow: DataSet) {
-					subAttributes[dataRow.getInkyDist().ordinal()]++;
-				}
-			case "BlinkyDist":
-				subAttributes = new int [5];
-				for (DataTuple dataRow: DataSet) {
-					subAttributes[dataRow.getBlinkyDir().ordinal()]++;
-				}
-			case "PinkyDist":
-				subAttributes = new int [5];
-				for (DataTuple dataRow: DataSet) {
-					subAttributes[dataRow.getPinkyDir().ordinal()]++;
-				}
-			default:
-				subAttributes = new int [0];
+	public int SelectAttribute(List<LinkedHashMap> processedList, List<String> attributeList) {	
+		double dataSetEntropy = 0;
+		double dataEntropy = 0;	
+		LinkedHashMap<String, Integer> subMap = new LinkedHashMap<String, Integer>();
+		for (LinkedHashMap map: processedList) {
+			String currentValue = (String)map.get("Direction");
+			if (subMap.containsKey(currentValue)) {
+				int intVal = subMap.get(currentValue);
+				intVal = intVal + 1;
+				subMap.put(currentValue, intVal);
+			}
+			else {
+				subMap.put(currentValue, 1);
 			}
 		}
-		double Entropy = CalcEntropy(subAttributes, subAttributes.length, DataSet.length);
+		dataSetEntropy = CalcEntropy(subMap, subMap.size(), processedList.size());
+		System.out.println(dataSetEntropy);
+		
+		
 		return 1;	
 	}
 	
-	public double CalcEntropy(int [] attributeFrequency, int nbrOfPossibilities, int dataSize) {
+	public double CalcEntropy(LinkedHashMap<String, Integer> subMap, int nbrOfPossibilities, int dataSize) {
 		double sum = 0;
-		for(int i = 0; i < attributeFrequency.length; i++) {
-			sum -= ((double) attributeFrequency[i]/nbrOfPossibilities) * Math.log10((double)attributeFrequency[i]/nbrOfPossibilities*Math.log10(2));
+		for(String key : subMap.keySet()) {
+			sum -= ((double) subMap.get(key)/nbrOfPossibilities) * Math.log10((double)subMap.get(key)/nbrOfPossibilities*Math.log10(2));
 		}
 		return nbrOfPossibilities/dataSize*sum;
 	}
@@ -269,8 +236,8 @@ public class ID3AIController extends Controller<MOVE>{
 		
 		public Node(List<LinkedHashMap> subSet) {
 			this.DataSet=subSet;
-			System.out.println("New Node Created");
-			System.out.println(DataSet.get(0).get("PinkyDist"));
+			//System.out.println("New Node Created");
+			//System.out.println(DataSet.get(0).get("PinkyDist"));
 	
 		}
 		
@@ -284,7 +251,7 @@ public class ID3AIController extends Controller<MOVE>{
 		}
 		public void setLeaf(boolean isLeaf) {
 			this.isLeaf = isLeaf;
-			System.out.println("Leaf " + label);
+			//System.out.println("Leaf " + label);
 		}
 		public String getLabel() {
 			return label;
@@ -315,7 +282,6 @@ public class ID3AIController extends Controller<MOVE>{
 		List<String>attributeList=cont.setupAttributes();
 		Node Root=cont.setandgetroot(processedList);
 		cont.GenerateTree(Root,attributeList);
-		
 		
 	}
 }
