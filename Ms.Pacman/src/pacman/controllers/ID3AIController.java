@@ -165,20 +165,32 @@ public class ID3AIController extends Controller<MOVE>{
 		System.out.println(dataSetEntropy);
 		
 		for (String attribute : attributeList) {
-			LinkedHashMap<String, Integer> attributeMap  = new LinkedHashMap<String, Integer>();
-			LinkedHashMap<String, Integer> targetMap  = new LinkedHashMap<String, Integer>();
+			LinkedHashMap<String,LinkedHashMap<String, Integer>>attributeMap  = new LinkedHashMap<String,LinkedHashMap<String, Integer>>();
+			//LinkedHashMap<String, Integer> targetMap  = new LinkedHashMap<String, Integer>();
 
 			for (LinkedHashMap map: processedList) {
-				String currentValue = (String)map.get(attribute);
+				String attributeValue = (String)map.get(attribute);
 				String targetValue = (String)map.get("Direction");
-				if (attributeMap.containsKey(currentValue)) {
-					int intVal = attributeMap.get(currentValue);
-					intVal = intVal + 1;
-					attributeMap.put(currentValue, intVal);
-					
+				LinkedHashMap<String, Integer> attributeSubMap;
+				if (attributeMap.containsKey(attributeValue)) {
+					 attributeSubMap = attributeMap.get(attributeValue);
+					int Freq= attributeSubMap.get("Frequency");
+					Freq++;
+					attributeSubMap.put("Frequency", Freq);
+					if(attributeSubMap.containsKey(targetValue)) {
+						int targetFreq=attributeSubMap.get(targetValue);
+						targetFreq++;
+						attributeSubMap.put(targetValue, targetFreq);
+						
+					}else {
+						attributeSubMap.put(targetValue, 1);
+					}
 				}
 				else {
-					attributeMap.put(currentValue, 1);
+					attributeSubMap=new LinkedHashMap<String,Integer>();
+					attributeSubMap.put("Frequency", 1);
+					attributeSubMap.put(targetValue, 1);
+					attributeMap.put(attributeValue,attributeSubMap);
 				}
 				
 			}
