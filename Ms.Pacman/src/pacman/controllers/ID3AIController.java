@@ -164,6 +164,27 @@ public class ID3AIController extends Controller<MOVE>{
 		dataSetEntropy = CalcEntropy(subMap, subMap.size(), processedList.size());
 		System.out.println(dataSetEntropy);
 		
+		for (String attribute : attributeList) {
+			LinkedHashMap<String, Integer> attributeMap  = new LinkedHashMap<String, Integer>();
+			LinkedHashMap<String, Integer> targetMap  = new LinkedHashMap<String, Integer>();
+
+			for (LinkedHashMap map: processedList) {
+				String currentValue = (String)map.get(attribute);
+				String targetValue = (String)map.get("Direction");
+				if (attributeMap.containsKey(currentValue)) {
+					int intVal = attributeMap.get(currentValue);
+					intVal = intVal + 1;
+					attributeMap.put(currentValue, intVal);
+					
+				}
+				else {
+					attributeMap.put(currentValue, 1);
+				}
+				
+			}
+			
+		}
+		
 		
 		return 1;	
 	}
