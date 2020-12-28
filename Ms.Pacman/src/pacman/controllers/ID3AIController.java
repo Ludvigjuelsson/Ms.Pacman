@@ -28,7 +28,6 @@ public class ID3AIController extends Controller<MOVE>{
 		List<String> attributeList = new ArrayList<>(oldAttributeList);
 		//System.out.println(processedList);
 		if (isAllMovesSame(processedList)) {
-			
 			node.setLabel(processedList.get(0).get("Direction").toString());
 			node.setLeaf(true);
 			return node;
