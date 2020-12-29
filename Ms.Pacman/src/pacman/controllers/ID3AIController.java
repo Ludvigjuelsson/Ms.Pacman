@@ -18,7 +18,7 @@ public class ID3AIController extends Controller<MOVE>{
 
 	private Random rnd=new Random();
 	private MOVE[] allMoves=MOVE.values();
-	//This should be passed down with every iteration. right now it is not
+	private int nbrOfNodes=1;
 	private Node RootNode;
 	
 	
@@ -26,24 +26,23 @@ public class ID3AIController extends Controller<MOVE>{
 	public Node GenerateTree(Node node,List <String> oldAttributeList) {
 		List<LinkedHashMap> processedList=node.getDataSet();
 		List<String> attributeList = new ArrayList<>(oldAttributeList);
-		//System.out.println(processedList);
 		if (isAllMovesSame(processedList)) {
+			System.out.println("Perfectly categorized leaf");
 			node.setLabel(processedList.get(0).get("Direction").toString());
 			node.setLeaf(true);
 			return node;
 		}
 		if (attributeList.size() == 1){
-			
 			node.setLabel(FindMajorityMove(processedList));
 			node.setLeaf(true);
 			return node;
 			}
-		//System.out.println(attributeList);
-		String currentAttribute= SelectAttribute(processedList, attributeList);// attributeList.get(0);
-		node.setLabel(currentAttribute); // change to get the one with least entropy
 		
+		String currentAttribute= SelectAttribute(processedList, attributeList);// attributeList.get(0);
+		node.setLabel(currentAttribute); 
 		attributeList.remove(0);
 		List<Node> childNodes = CreateChildNodes(processedList,currentAttribute);
+		nbrOfNodes+=childNodes.size();
 		node.setChildren(childNodes);
 		for (Node child:childNodes) {
 			GenerateTree(child,attributeList);
@@ -58,7 +57,6 @@ public class ID3AIController extends Controller<MOVE>{
 	public boolean isAllMovesSame(List<LinkedHashMap> processedList) {
 		String outCome =processedList.get(0).get("Direction").toString();
 		boolean isAllSame=true;
-		
 		for (int i=1; i<processedList.size();i++) {
 			if(!processedList.get(i).get("Direction").toString().equals(outCome)) {
 				isAllSame=false;
@@ -71,7 +69,6 @@ public class ID3AIController extends Controller<MOVE>{
 		List<List<LinkedHashMap>> SubSets;
 		List <Node> ChildNodes=new ArrayList<Node>();
 		SubSets=splitOnAttribute(mapList,currentAttribute);
-		//System.out.println(SubSets.size());
 		for (List<LinkedHashMap> SubSet : SubSets) {
 			ChildNodes.add(new Node(SubSet));	
 		}
@@ -80,12 +77,9 @@ public class ID3AIController extends Controller<MOVE>{
 	
 	public List<List<LinkedHashMap>> splitOnAttribute(List<LinkedHashMap> mapList,String currentAttribute) {
 		List<List<LinkedHashMap>> SubSets = new ArrayList<List<LinkedHashMap>>();
-		
-	
 		for (LinkedHashMap map : mapList) {
 			boolean added = false;
 			String mapValue = map.get(currentAttribute).toString();
-			//System.out.println(mapList.size());
 			for (List<LinkedHashMap> SubSet : SubSets) {
 				if (SubSet.get(0) != null) {
 					if (SubSet.get(0).get(currentAttribute).toString().equals(mapValue)) {
@@ -150,9 +144,7 @@ public class ID3AIController extends Controller<MOVE>{
 	}
 	public String SelectAttribute(List<LinkedHashMap> processedList, List<String> attributeList) {	
 		double dataSetEntropy = 0;
-		double dataEntropy = 0;	
 		LinkedHashMap<String, Integer> subMap = getTargetMap(processedList);
-		
 		dataSetEntropy = CalcEntropy(subMap, subMap.size(), processedList.size());
 		System.out.println(dataSetEntropy);
 		LinkedHashMap<String, Integer> targetMap;
