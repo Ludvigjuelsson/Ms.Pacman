@@ -39,7 +39,7 @@ public class ID3AIController extends Controller<MOVE>{
 			return node;
 			}
 		//System.out.println(attributeList);
-		String currentAttribute=attributeList.get(0);
+		String currentAttribute= SelectAttribute(processedList, attributeList);// attributeList.get(0);
 		node.setLabel(currentAttribute); // change to get the one with least entropy
 		
 		attributeList.remove(0);
@@ -68,9 +68,20 @@ public class ID3AIController extends Controller<MOVE>{
 		return isAllSame;
 	}
 	public List<Node> CreateChildNodes(List<LinkedHashMap> mapList,String currentAttribute) {
-		List<List<LinkedHashMap>> SubSets = new ArrayList<List<LinkedHashMap>>();
+		List<List<LinkedHashMap>> SubSets;
 		List <Node> ChildNodes=new ArrayList<Node>();
-		//System.out.println(this.label);
+		SubSets=splitOnAttribute(mapList,currentAttribute);
+		//System.out.println(SubSets.size());
+		for (List<LinkedHashMap> SubSet : SubSets) {
+			ChildNodes.add(new Node(SubSet));	
+		}
+		return ChildNodes;
+	}
+	
+	public List<List<LinkedHashMap>> splitOnAttribute(List<LinkedHashMap> mapList,String currentAttribute) {
+		List<List<LinkedHashMap>> SubSets = new ArrayList<List<LinkedHashMap>>();
+		
+	
 		for (LinkedHashMap map : mapList) {
 			boolean added = false;
 			String mapValue = map.get(currentAttribute).toString();
@@ -79,14 +90,11 @@ public class ID3AIController extends Controller<MOVE>{
 				if (SubSet.get(0) != null) {
 					if (SubSet.get(0).get(currentAttribute).toString().equals(mapValue)) {
 						SubSet.add(map);
-						
 						added = true;
 						break;
 					}
 				}
-			
 			}
-			
 			if (added == false) {
 				List<LinkedHashMap> subset = new ArrayList<LinkedHashMap>();
 				subset.add(map);
@@ -94,15 +102,9 @@ public class ID3AIController extends Controller<MOVE>{
 			}
 
 		}
-		
-		
-		//System.out.println(SubSets.size());
-		for (List<LinkedHashMap> SubSet : SubSets) {
-			ChildNodes.add(new Node(SubSet));	
-		}
-		
-		return ChildNodes;
+		return SubSets;
 	}
+	
 	public String FindMajorityMove(List<LinkedHashMap> processedList) {
 		int sumLeft,sumRight,sumUp,sumDown,sumNeutral;
 		sumLeft=0;sumRight=0;sumUp=0;sumDown=0;sumNeutral=0;
@@ -146,25 +148,30 @@ public class ID3AIController extends Controller<MOVE>{
 		return MajorityMove;
 
 	}
-	public int SelectAttribute(List<LinkedHashMap> processedList, List<String> attributeList) {	
+	public String SelectAttribute(List<LinkedHashMap> processedList, List<String> attributeList) {	
 		double dataSetEntropy = 0;
 		double dataEntropy = 0;	
-		LinkedHashMap<String, Integer> subMap = new LinkedHashMap<String, Integer>();
-		for (LinkedHashMap map: processedList) {
-			String currentValue = (String)map.get("Direction");
-			if (subMap.containsKey(currentValue)) {
-				int intVal = subMap.get(currentValue);
-				intVal = intVal + 1;
-				subMap.put(currentValue, intVal);
-			}
-			else {
-				subMap.put(currentValue, 1);
-			}
-		}
+		LinkedHashMap<String, Integer> subMap = getTargetMap(processedList);
+		
 		dataSetEntropy = CalcEntropy(subMap, subMap.size(), processedList.size());
 		System.out.println(dataSetEntropy);
-		
+		LinkedHashMap<String, Integer> targetMap;
+		List<List<LinkedHashMap>> SubSets;
+		String bestEntropy="";
+		double minEntropy=Double.MIN_VALUE;
 		for (String attribute : attributeList) {
+			SubSets=splitOnAttribute(processedList,attribute);
+			double mean=0;
+			for (List<LinkedHashMap> subset: SubSets) {
+				targetMap=getTargetMap(subset);
+				mean+=CalcEntropy(targetMap, targetMap.size(), subset.size());
+			}
+			mean=mean/SubSets.size();//Borde man räkna ut totentropy-denna entropy? o sätta som gain? eller onödigt?
+			if (mean<minEntropy){
+				minEntropy=mean;
+				bestEntropy=attribute;
+			}
+			/**
 			LinkedHashMap<String,LinkedHashMap<String, Integer>>attributeMap  = new LinkedHashMap<String,LinkedHashMap<String, Integer>>();
 			//LinkedHashMap<String, Integer> targetMap  = new LinkedHashMap<String, Integer>();
 
@@ -185,20 +192,24 @@ public class ID3AIController extends Controller<MOVE>{
 					}else {
 						attributeSubMap.put(targetValue, 1);
 					}
+					
 				}
 				else {
 					attributeSubMap=new LinkedHashMap<String,Integer>();
 					attributeSubMap.put("Frequency", 1);
 					attributeSubMap.put(targetValue, 1);
-					attributeMap.put(attributeValue,attributeSubMap);
+					
 				}
-				
+				attributeMap.put(attributeValue,attributeSubMap);
 			}
-			
+			for(String key:attributeMap.keySet()) {
+			double attributeEntropy= CalcEntropy(attributeMap.get(key),5,attributeMap.get(key).get("Frequency"));
+			}
+			**/
 		}
+	
 		
-		
-		return 1;	
+		return bestEntropy;	
 	}
 	
 	// kanske ändra in-parametrar 
@@ -218,6 +229,21 @@ public class ID3AIController extends Controller<MOVE>{
 			InformationGainSum -= ((double) subMap.get(key)/nbrOfPossibilities) * Math.log10((double)subMap.get(key)/nbrOfPossibilities*Math.log10(2));
 		}
 		return nbrOfPossibilities/dataSize*InformationGainSum;
+	}
+	public LinkedHashMap<String, Integer> getTargetMap(List<LinkedHashMap> processedList) {
+		LinkedHashMap<String, Integer> targetMap = new LinkedHashMap<String, Integer>();
+		for (LinkedHashMap map: processedList) {
+			String currentValue = (String)map.get("Direction");
+			if (targetMap.containsKey(currentValue)) {
+				int intVal = targetMap.get(currentValue);
+				intVal = intVal + 1;
+				targetMap.put(currentValue, intVal);
+			}
+			else {
+				targetMap.put(currentValue, 1);
+			}
+		}
+		return targetMap;
 	}
 
 	public List<String> setupAttributes(){
