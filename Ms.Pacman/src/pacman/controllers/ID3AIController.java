@@ -21,33 +21,25 @@ public class ID3AIController extends Controller<MOVE>{
 	private int nbrOfNodes=1;
 	private Node RootNode;
 	
-	
-	
 	public Node GenerateTree(Node node,List <String> oldAttributeList) {
 		List<LinkedHashMap> processedList=node.getDataSet();
 		List<String> attributeList = new ArrayList<>(oldAttributeList);
 		if (isAllMovesSame(processedList)) {
-			System.out.println("Perfectly categorized leaf");
-
+			System.out.println("Perfectly categorized leaf:");
 			node.setLabel(processedList.get(0).get("Direction").toString());
 			node.setLeaf(true);
 			return node;
 		}
-		if (attributeList.size() == 1){
+		if (attributeList.size() == 0){
+			System.out.println("Leaf categorized by majority: ");
 			node.setLabel(FindMajorityMove(processedList));
 			node.setLeaf(true);
 			return node;
 			}
 
-		//System.out.println(attributeList);
 		String currentAttribute= SelectAttribute(processedList, attributeList);// attributeList.get(0);
-
-		node.setLabel(currentAttribute); // change to get the one with least entropy
-		
-		String currentAttribute= SelectAttribute(processedList, attributeList);// attributeList.get(0);
-		node.setLabel(currentAttribute); 
-		attributeList.remove(0);
-		System.out.println(currentAttribute);
+		node.setLabel(currentAttribute); // change to get the one with least entropy 
+		attributeList.remove(currentAttribute);
 		List<Node> childNodes = CreateChildNodes(processedList,currentAttribute);
 		nbrOfNodes+=childNodes.size();
 		node.setChildren(childNodes);
@@ -75,10 +67,8 @@ public class ID3AIController extends Controller<MOVE>{
 	public List<Node> CreateChildNodes(List<LinkedHashMap> mapList,String currentAttribute) {
 		List<List<LinkedHashMap>> SubSets;
 		List <Node> ChildNodes=new ArrayList<Node>();
-		//System.out.println(currentAttribute);
 		SubSets=splitOnAttribute(mapList,currentAttribute);
 		System.out.println("Splitting on attribute" + currentAttribute);
-		//System.out.println(SubSets.size());
 		for (List<LinkedHashMap> SubSet : SubSets) {
 			ChildNodes.add(new Node(SubSet));	
 		}
@@ -87,9 +77,6 @@ public class ID3AIController extends Controller<MOVE>{
 	
 	public List<List<LinkedHashMap>> splitOnAttribute(List<LinkedHashMap> mapList,String currentAttribute) {
 		List<List<LinkedHashMap>> SubSets = new ArrayList<List<LinkedHashMap>>();
-		
-		//System.out.println(currentAttribute);
-
 		for (LinkedHashMap map : mapList) {
 			boolean added = false;
 			String mapValue = map.get(currentAttribute).toString();
@@ -158,34 +145,29 @@ public class ID3AIController extends Controller<MOVE>{
 	public String SelectAttribute(List<LinkedHashMap> processedList, List<String> attributeList) {	
 		double dataSetEntropy = 0;
 		LinkedHashMap<String, Integer> subMap = getTargetMap(processedList);
-		dataSetEntropy = CalcEntropy(subMap, subMap.size(), processedList.size());
-		System.out.println(dataSetEntropy);
-		
 		dataSetEntropy = CalcEntropy(subMap, (double)subMap.size(), (double)processedList.size());
 		System.out.println("Total entropy of dataset: " + Double.toString(dataSetEntropy));
 		LinkedHashMap<String, Integer> targetMap;
 		List<List<LinkedHashMap>> SubSets;
 		String bestGain = attributeList.get(0);
 		double maxGain=Double.MIN_VALUE;
+		double gain;
 		for (String attribute : attributeList) {
 			if(attribute != "Direction") {
 				SubSets=splitOnAttribute(processedList,attribute);
-				double mean=0;
+				double meanEntropy=0;
 				for (List<LinkedHashMap> subset: SubSets) {
 					targetMap=getTargetMap(subset);
-					mean+=CalcInformationGain(targetMap, (double)targetMap.size(), (double)subset.size());
+					meanEntropy+=CalcInformationGain(targetMap, (double)targetMap.size(), (double)subset.size());
 				}
-				System.out.println("Attribute gain: " + Double.toString(dataSetEntropy - mean) + ", from attribute: " + attribute);
-	
-				//mean=mean/SubSets.size();//Borde man r�kna ut totentropy-denna entropy? o s�tta som gain? eller on�digt?
-				if ((dataSetEntropy - mean) > maxGain){
-					maxGain=dataSetEntropy - mean;
+				gain=dataSetEntropy-meanEntropy;
+				//System.out.println("Attribute mean: " + Double.toString(gain) + ", from attribute: " + attribute);
+				if (gain > maxGain){
+					maxGain= meanEntropy;
 					bestGain=attribute;
 				}
 			}
 		}
-	
-		System.out.println(bestGain);
 		return bestGain;	
 	}
 		
@@ -195,7 +177,6 @@ public class ID3AIController extends Controller<MOVE>{
 			double quota = (double)subMap.get(key)/dataSize;
 			Entropysum -= quota * (Math.log10(quota)/Math.log10(2));
 		}
-		//return nbrOfPossibilities/dataSize*Entropysum;
 		return Entropysum;
 	} 
 	
@@ -205,7 +186,6 @@ public class ID3AIController extends Controller<MOVE>{
 			double quota = (double)subMap.get(key)/dataSize;
 			InformationGainSum -= quota * (Math.log10(quota)/Math.log10(2));
 		}
-		
 		return nbrOfPossibilities/dataSize*InformationGainSum;
 	}
 	public LinkedHashMap<String, Integer> getTargetMap(List<LinkedHashMap> processedList) {
@@ -235,10 +215,8 @@ public class ID3AIController extends Controller<MOVE>{
 		attributeList.add("BlinkyDir");
 		attributeList.add("SueDir");
 		attributeList.add("BlinkyEdible");
-		attributeList.add("InkyEdible");
-		attributeList.add("PinkyEdible");
-		attributeList.add("SueEdible");
-		attributeList.add("Direction");
+		
+		//attributeList.add("Direction");
 		return attributeList;
 	}
 	
@@ -256,9 +234,6 @@ public class ID3AIController extends Controller<MOVE>{
 			map.put("BlinkyDir", DataSet[i].getInkyDir().toString());
 			map.put("SueDir", DataSet[i].getSueDir().toString());
 			map.put("BlinkyEdible",Boolean.toString(DataSet[i].isBlinkyEdible()));
-			map.put("InkyEdible",Boolean.toString(DataSet[i].isInkyEdible()));
-			map.put("SueEdible",Boolean.toString(DataSet[i].isSueEdible()));
-			map.put("PinkyEdible",Boolean.toString(DataSet[i].isPinkyEdible()));
 			map.put("Direction",DataSet[i].getDirectionChosen().toString());
 			processedList.add(map);
 		}
@@ -267,7 +242,9 @@ public class ID3AIController extends Controller<MOVE>{
 	
 	
 	
-	
+	public int getNbrOfNodes() {
+		return nbrOfNodes;
+	}
 	/* (non-Javadoc)
 	 * @see pacman.controllers.Controller#getMove(pacman.game.Game, long)
 	 */
@@ -299,7 +276,7 @@ public class ID3AIController extends Controller<MOVE>{
 		}
 		public void setLeaf(boolean isLeaf) {
 			this.isLeaf = isLeaf;
-			//System.out.println("Leaf " + label);
+			System.out.println("Leaf: " + label);
 		}
 		public String getLabel() {
 			return label;
@@ -323,14 +300,17 @@ public class ID3AIController extends Controller<MOVE>{
 	
 
 	public static void main(String[] args) {
-		System.out.println(-0.3* (Math.log10(0.3)/Math.log10(2)));
+		
 		final DataTuple[] DataSet=DataSaverLoader.LoadPacManData();
 		//private List<LinkedHashMap> processedList=new ArrayList<LinkedHashMap>();
 		ID3AIController cont=new ID3AIController();
 		List<LinkedHashMap>processedList= cont.PreprocessingData(DataSet);
 		List<String>attributeList=cont.setupAttributes();
+		
 		Node Root=cont.setandgetroot(processedList);
 		cont.GenerateTree(Root,attributeList);
+		System.out.println("Number of attributes: " + attributeList.size() );
+		System.out.println("Number of created nodes: "+ cont.getNbrOfNodes());
 		
 	}
 }
