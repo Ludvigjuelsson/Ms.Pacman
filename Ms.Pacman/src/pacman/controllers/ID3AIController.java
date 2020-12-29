@@ -201,12 +201,23 @@ public class ID3AIController extends Controller<MOVE>{
 		return 1;	
 	}
 	
+	// kanske ändra in-parametrar 
+	
 	public double CalcEntropy(LinkedHashMap<String, Integer> subMap, int nbrOfPossibilities, int dataSize) {
-		double sum = 0;
+		double Entropysum = 0;
 		for(String key : subMap.keySet()) {
-			sum -= ((double) subMap.get(key)/nbrOfPossibilities) * Math.log10((double)subMap.get(key)/nbrOfPossibilities*Math.log10(2));
+			Entropysum -= ((double) subMap.get(key)/nbrOfPossibilities) * Math.log10((double)subMap.get(key)/nbrOfPossibilities*Math.log10(2));
 		}
-		return nbrOfPossibilities/dataSize*sum;
+		//return nbrOfPossibilities/dataSize*Entropysum;
+		return Entropysum;
+	} 
+	
+	public double CalcInformationGain (LinkedHashMap<String, Integer> subMap, int nbrOfPossibilities, int dataSize) {
+		double InformationGainSum = 0;
+		for(String key : subMap.keySet()) {
+			InformationGainSum -= ((double) subMap.get(key)/nbrOfPossibilities) * Math.log10((double)subMap.get(key)/nbrOfPossibilities*Math.log10(2));
+		}
+		return nbrOfPossibilities/dataSize*InformationGainSum;
 	}
 
 	public List<String> setupAttributes(){
