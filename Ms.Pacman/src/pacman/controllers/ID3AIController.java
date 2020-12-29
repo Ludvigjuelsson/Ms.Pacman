@@ -40,7 +40,14 @@ public class ID3AIController extends Controller<MOVE>{
 		String currentAttribute= SelectAttribute(processedList, attributeList);// attributeList.get(0);
 		node.setLabel(currentAttribute); // change to get the one with least entropy 
 		attributeList.remove(currentAttribute);
+		System.out.println("-------");
+		System.out.println("Node Label: " + currentAttribute);
 		List<Node> childNodes = CreateChildNodes(processedList,currentAttribute);
+		System.out.println("Creating: " + childNodes.size() + " children");
+		for (Node child : childNodes) {
+			System.out.println(child.getSplitValue());
+		}
+		System.out.println("-------");
 		nbrOfNodes+=childNodes.size();
 		node.setChildren(childNodes);
 		for (Node child:childNodes) {
@@ -48,6 +55,28 @@ public class ID3AIController extends Controller<MOVE>{
 		}
 		return node;
 		}	
+	
+	public String TraverseTree(Node node, LinkedHashMap dataMap) {
+		String attribute = node.getLabel();
+		List <Node> nodeList = node.getNodeList(); // current nodes children
+		Node childNode = null;
+		if (node.isLeaf()) {
+			return attribute;
+		}
+		
+		for (Node child : nodeList) {
+			if (child.getSplitValue() == dataMap.get(attribute)) {
+				childNode = child;
+				break;
+			}
+			
+		}
+		if (childNode == null) {
+			System.out.println("Path not in training dataset, could not find target");
+			return null;
+		}
+		return TraverseTree(childNode, dataMap);
+	}
 	
 	public Node setandgetroot(List<LinkedHashMap> processedList) {
 		RootNode=new Node(processedList);
@@ -68,16 +97,17 @@ public class ID3AIController extends Controller<MOVE>{
 		List<List<LinkedHashMap>> SubSets;
 		List <Node> ChildNodes=new ArrayList<Node>();
 		SubSets=splitOnAttribute(mapList,currentAttribute);
-		System.out.println("Splitting on attribute" + currentAttribute);
 		for (List<LinkedHashMap> SubSet : SubSets) {
-			ChildNodes.add(new Node(SubSet));	
+			Node node = new Node(SubSet);
+			node.setSplitValue(SubSet.get(0).get(currentAttribute).toString());
+			ChildNodes.add(node);
 		}
 		return ChildNodes;
 	}
 	
-	public List<List<LinkedHashMap>> splitOnAttribute(List<LinkedHashMap> mapList,String currentAttribute) {
+	public List<List<LinkedHashMap>> splitOnAttribute(List<LinkedHashMap> dataSet,String currentAttribute) {
 		List<List<LinkedHashMap>> SubSets = new ArrayList<List<LinkedHashMap>>();
-		for (LinkedHashMap map : mapList) {
+		for (LinkedHashMap map : dataSet) {
 			boolean added = false;
 			String mapValue = map.get(currentAttribute).toString();
 			for (List<LinkedHashMap> SubSet : SubSets) {
@@ -146,7 +176,7 @@ public class ID3AIController extends Controller<MOVE>{
 		double dataSetEntropy = 0;
 		LinkedHashMap<String, Integer> subMap = getTargetMap(processedList);
 		dataSetEntropy = CalcEntropy(subMap, (double)subMap.size(), (double)processedList.size());
-		System.out.println("Total entropy of dataset: " + Double.toString(dataSetEntropy));
+		//System.out.println("Total entropy of dataset: " + Double.toString(dataSetEntropy));
 		LinkedHashMap<String, Integer> targetMap;
 		List<List<LinkedHashMap>> SubSets;
 		String bestGain = attributeList.get(0);
@@ -215,7 +245,6 @@ public class ID3AIController extends Controller<MOVE>{
 		attributeList.add("BlinkyDir");
 		attributeList.add("SueDir");
 		attributeList.add("BlinkyEdible");
-		
 		//attributeList.add("Direction");
 		return attributeList;
 	}
@@ -225,7 +254,6 @@ public class ID3AIController extends Controller<MOVE>{
 		for (int i=0;i<DataSet.length;i++) {
 			LinkedHashMap<String,String> map=new LinkedHashMap<String, String>();
 			map.put("PinkyDist",DataSet[i].getPinkyDist().toString());
-			
 			map.put("BlinkyDist", DataSet[i].getBlinkyDist().toString());
 			map.put("SueDist", DataSet[i].getSueDist().toString());
 			map.put("InkyDist", DataSet[i].getInkyDist().toString());
@@ -256,6 +284,7 @@ public class ID3AIController extends Controller<MOVE>{
 	private class Node {
 		private boolean isLeaf=false;
 		private String label;
+		private String splitValue;
 		private List<Node> ChildNodes=new ArrayList<Node>();;
 		private List<LinkedHashMap> DataSet=new ArrayList<LinkedHashMap>();
 		
@@ -265,6 +294,15 @@ public class ID3AIController extends Controller<MOVE>{
 			//System.out.println(DataSet.get(0).get("PinkyDist"));
 	
 		}
+		
+		public String getSplitValue() {
+			return splitValue;
+		}
+		
+		public void setSplitValue(String splitVal) {
+			splitValue = splitVal;
+		}
+		
 		
 		public void setChildren(List<Node> childNodes) {
 			this.ChildNodes=childNodes;
@@ -302,15 +340,44 @@ public class ID3AIController extends Controller<MOVE>{
 	public static void main(String[] args) {
 		
 		final DataTuple[] DataSet=DataSaverLoader.LoadPacManData();
+		final DataTuple[] TrainingData = new DataTuple [3351];
+		final DataTuple[] TestData = new DataTuple [837];
+		
+		for (int i = 0; i < TrainingData.length; i++) {
+			TrainingData[i] = DataSet[i];
+		}
+		for (int i = 0; i < TestData.length; i++) {
+			TestData[i] = DataSet[3351 + i];
+		}
+		
+
 		//private List<LinkedHashMap> processedList=new ArrayList<LinkedHashMap>();
 		ID3AIController cont=new ID3AIController();
-		List<LinkedHashMap>processedList= cont.PreprocessingData(DataSet);
-		List<String>attributeList=cont.setupAttributes();
-		
-		Node Root=cont.setandgetroot(processedList);
+		List<LinkedHashMap>processedTrainingData= cont.PreprocessingData(TrainingData);
+		List<LinkedHashMap>processedTestData= cont.PreprocessingData(TestData);
+		List<String>attributeList=cont.setupAttributes();	
+		Node Root=cont.setandgetroot(processedTrainingData);
 		cont.GenerateTree(Root,attributeList);
 		System.out.println("Number of attributes: " + attributeList.size() );
 		System.out.println("Number of created nodes: "+ cont.getNbrOfNodes());
+		int Correct = 0;
+		int Incorrect = 0;
 		
+		
+		for (int i = 0; i < processedTestData.size(); i++) {
+			String TraverseResult = cont.TraverseTree(Root ,processedTestData.get(i));
+			if (TraverseResult != null ) {
+				if (TraverseResult.equals(processedTestData.get(i).get("Direction"))) {
+					Correct++;
+				}
+				else {
+					Incorrect++;
+				}
+			}else {
+			//	Incorrect++;
+			}
+		}
+		System.out.println(Correct);
+		System.out.println(Incorrect);
 	}
 }
