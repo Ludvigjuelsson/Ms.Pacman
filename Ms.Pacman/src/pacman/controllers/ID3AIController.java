@@ -277,7 +277,18 @@ public class ID3AIController extends Controller<MOVE>{
 	 */
 	public MOVE getMove(Game game,long timeDue)
 	{
-		return allMoves[rnd.nextInt(allMoves.length)];
+		LinkedHashMap<String,String> map=new LinkedHashMap<String, String>();
+		map.put("PinkyDist",game.PinkyDist().toString());
+		map.put("BlinkyDist", game.getBlinkyDist().toString());
+		map.put("SueDist", game.getSueDist().toString());
+		map.put("InkyDist", game.getInkyDist().toString());
+		map.put("InkyDir", game.getInkyDir().toString());
+		map.put("PinkyDir", game.getPinkyDir().toString());
+		map.put("BlinkyDir",game.getInkyDir().toString());
+		map.put("SueDir", game.getSueDir().toString());
+		map.put("BlinkyEdible",Boolean.toString(game.isBlinkyEdible()));
+		map.put("Direction",game.getDirectionChosen().toString());
+		TraverseTree(RootNode,map);
 	}
 	
 	private class Node {
