@@ -340,17 +340,19 @@ public class ID3AIController extends Controller<MOVE>{
 		
 		final DataTuple[] DataSet=DataSaverLoader.LoadPacManData();
 		final DataTuple[] TrainingData = new DataTuple [3351];
-		final DataTuple[] TestData = new DataTuple [837];
-		
-		for (int i = 0; i < TrainingData.length; i++) {
-			TrainingData[i] = DataSet[i];
+		final DataTuple[] TestData = new DataTuple [838];
+		int j=0;
+		int k=0;
+		for (int i = 0; i <  DataSet.length; i++) {
+			if ((i%5)==0) {
+			TestData[j] = DataSet[i];
+			j++;
+			}
+			else {
+				TrainingData[k] = DataSet[i];
+				k++;
+			}
 		}
-		for (int i = 0; i < TestData.length; i++) {
-			TestData[i] = DataSet[3351 + i];
-		}
-		
-
-		//private List<LinkedHashMap> processedList=new ArrayList<LinkedHashMap>();
 		ID3AIController cont=new ID3AIController();
 		List<LinkedHashMap>processedTrainingData= cont.PreprocessingData(TrainingData);
 		List<LinkedHashMap>processedTestData= cont.PreprocessingData(TestData);
@@ -360,9 +362,7 @@ public class ID3AIController extends Controller<MOVE>{
 		System.out.println("Number of attributes: " + attributeList.size() );
 		System.out.println("Number of created nodes: "+ cont.getNbrOfNodes());
 		int Correct = 0;
-		int Incorrect = 0;
-		
-		
+		int Incorrect = 0;	
 		for (int i = 0; i < processedTestData.size(); i++) {
 			String TraverseResult = cont.TraverseTree(Root ,processedTestData.get(i));
 			if (TraverseResult != null ) {
@@ -370,10 +370,12 @@ public class ID3AIController extends Controller<MOVE>{
 					Correct++;
 				}
 				else {
+					System.out.println("Result from tree: " + TraverseResult+ " Result from testdata: " +processedTestData.get(i).get("Direction"));
 					Incorrect++;
 				}
 			}else {
-			//	Incorrect++;
+				Incorrect++;
+				System.out.println("Result from tree: " + TraverseResult+ " Result from testdata: " +processedTestData.get(i).get("Direction"));
 			}
 		}
 		System.out.println("Correct: " + Correct);
