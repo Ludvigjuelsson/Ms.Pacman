@@ -11,6 +11,8 @@ import java.util.Random;
 import java.util.function.Function;
 
 import pacman.game.Game;
+import pacman.game.Constants.DM;
+import pacman.game.Constants.GHOST;
 import pacman.game.Constants.MOVE;
 import pacman.controllers.Controller;
 
@@ -20,6 +22,7 @@ public class ID3AIController extends Controller<MOVE>{
 	private MOVE[] allMoves=MOVE.values();
 	private int nbrOfNodes=1;
 	private Node RootNode;
+	private MOVE move = MOVE.RIGHT;
 	
 	public Node GenerateTree(Node node,List <String> oldAttributeList) {
 		List<LinkedHashMap> processedList=node.getDataSet();
@@ -278,20 +281,42 @@ public class ID3AIController extends Controller<MOVE>{
 	public MOVE getMove(Game game,long timeDue)
 	{
 		LinkedHashMap<String,String> map=new LinkedHashMap<String, String>();
-		map.put("PinkyDist",game.PinkyDist().toString());
-		map.put("BlinkyDist", game.getBlinkyDist().toString());
-		map.put("SueDist", game.getSueDist().toString());
-		map.put("InkyDist", game.getInkyDist().toString());
-		map.put("InkyDir", game.getInkyDir().toString());
-		map.put("PinkyDir", game.getPinkyDir().toString());
-		map.put("BlinkyDir",game.getInkyDir().toString());
-		map.put("SueDir", game.getSueDir().toString());
-		map.put("BlinkyEdible",Boolean.toString(game.isBlinkyEdible()));
-		map.put("Direction",game.getDirectionChosen().toString());
-		TraverseTree(RootNode,map);
+		map.put("PinkyDist",(discretizeDistance(game.getShortestPathDistance(game.getPacmanCurrentNodeIndex(), game.getGhostCurrentNodeIndex(GHOST.PINKY)))).toString());
+		map.put("BlinkyDist", (discretizeDistance(game.getShortestPathDistance(game.getPacmanCurrentNodeIndex(), game.getGhostCurrentNodeIndex(GHOST.BLINKY)))).toString());
+		map.put("SueDist", (discretizeDistance(game.getShortestPathDistance(game.getPacmanCurrentNodeIndex(), game.getGhostCurrentNodeIndex(GHOST.SUE)))).toString());
+		map.put("InkyDist", (discretizeDistance(game.getShortestPathDistance(game.getPacmanCurrentNodeIndex(), game.getGhostCurrentNodeIndex(GHOST.INKY)))).toString());
+		map.put("InkyDir", game.getNextMoveTowardsTarget(game.getPacmanCurrentNodeIndex(), game.getGhostCurrentNodeIndex(GHOST.INKY), DM.PATH).toString());
+		map.put("PinkyDir", game.getNextMoveTowardsTarget(game.getPacmanCurrentNodeIndex(), game.getGhostCurrentNodeIndex(GHOST.PINKY), DM.PATH).toString());
+		map.put("BlinkyDir",game.getNextMoveTowardsTarget(game.getPacmanCurrentNodeIndex(), game.getGhostCurrentNodeIndex(GHOST.BLINKY), DM.PATH).toString());
+		map.put("SueDir", game.getNextMoveTowardsTarget(game.getPacmanCurrentNodeIndex(), game.getGhostCurrentNodeIndex(GHOST.SUE), DM.PATH).toString());
+		map.put("BlinkyEdible",Boolean.toString(game.isGhostEdible(GHOST.BLINKY)));
+		String TraverseResult = TraverseTree(RootNode,map);
+		
+		if (TraverseResult == null) {
+			
+			return move;
+		}
+		
+		switch (TraverseResult) {
+		case "LEFT":
+			move = MOVE.LEFT;
+			
+		case "RIGHT":
+			move = MOVE.RIGHT;
+			
+		case "UP":
+			move = MOVE.UP;
+			
+		case "DOWN":
+			move = MOVE.DOWN;
+			
+		default:
+			move = MOVE.NEUTRAL;
+		}
+		return move;
 	}
 	
-	private class Node {
+	public class Node {
 		private boolean isLeaf=false;
 		private String label;
 		private String splitValue;
@@ -344,7 +369,33 @@ public class ID3AIController extends Controller<MOVE>{
 		
 	}
 	
+	public enum DiscreteTag {
+		VERY_LOW, LOW, MEDIUM, HIGH, VERY_HIGH, NONE;
 
+		public static DiscreteTag DiscretizeDouble(double aux) {
+			if (aux < 0.1)
+				return DiscreteTag.VERY_LOW;
+			else if (aux <= 0.3)
+				return DiscreteTag.LOW;
+			else if (aux <= 0.5)
+				return DiscreteTag.MEDIUM;
+			else if (aux <= 0.7)
+				return DiscreteTag.HIGH;
+			else
+				return DiscreteTag.VERY_HIGH;
+		}
+	}
+	
+	public DiscreteTag discretizeDistance(int dist) {
+		if (dist == -1)
+			return DiscreteTag.NONE;
+		double aux = this.normalizeDistance(dist);
+		return DiscreteTag.DiscretizeDouble(aux);
+	}
+	
+	public double normalizeDistance(int dist) {
+		return ((dist - 0) / (double) (150 - 0)) * (1 - 0) + 0;
+	}
 	
 
 	public static void main(String[] args) {

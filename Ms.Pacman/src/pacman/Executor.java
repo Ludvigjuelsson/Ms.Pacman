@@ -8,12 +8,18 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Random;
 
 import dataRecording.DataCollectorController;
+import dataRecording.DataSaverLoader;
+import dataRecording.DataTuple;
 import pacman.controllers.Controller;
 import pacman.controllers.HumanController;
+import pacman.controllers.ID3AIController;
 import pacman.controllers.KeyBoardInput;
+import pacman.controllers.ID3AIController.Node;
 import pacman.controllers.examples.AggressiveGhosts;
 import pacman.controllers.examples.Legacy;
 import pacman.controllers.examples.Legacy2TheReckoning;
@@ -63,6 +69,15 @@ public class Executor
 		///*
 		//run the game in asynchronous mode.
 		boolean visual=true;
+		final DataTuple[] DataSet=DataSaverLoader.LoadPacManData();
+
+		ID3AIController cont=new ID3AIController();
+		List<LinkedHashMap>processedTrainingData= cont.PreprocessingData(DataSet);
+		List<String>attributeList=cont.setupAttributes();	
+		Node Root=cont.setandgetroot(processedTrainingData);
+		cont.GenerateTree(Root,attributeList);
+		System.out.println("Number of attributes: " + attributeList.size() );
+		System.out.println("Number of created nodes: "+ cont.getNbrOfNodes());
 //		exec.runGameTimed(new NearestPillPacMan(),new AggressiveGhosts(),visual);
 //		exec.runGameTimed(new StarterPacMan(),new StarterGhosts(),visual);
 //		exec.runGameTimed(new HumanController(new KeyBoardInput()),new StarterGhosts(),visual);	
@@ -85,7 +100,8 @@ public class Executor
 		 */
 		
 		//run game for data collection
-		exec.runGameTimed(new DataCollectorController(new KeyBoardInput()),new StarterGhosts(),visual);
+		//exec.runGameTimed(new DataCollectorController(new KeyBoardInput()),new StarterGhosts(),visual);
+		exec.runGameTimed(cont,new StarterGhosts(),visual);
 	}
 	
     /**
