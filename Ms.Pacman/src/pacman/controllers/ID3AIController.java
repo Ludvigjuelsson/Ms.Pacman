@@ -74,8 +74,8 @@ public class ID3AIController extends Controller<MOVE>{
 			}			
 		}
 		if (childNode == null) {
+			childNode = nodeList.get((int)Math.random()*((nodeList.size())));
 			System.out.println("Path not in training dataset");
-			return null;
 		}
 		return TraverseTree(childNode, dataMap);
 	}
@@ -293,24 +293,41 @@ public class ID3AIController extends Controller<MOVE>{
 		String TraverseResult = TraverseTree(RootNode,map);
 		
 		if (TraverseResult == null) {
-			
+			move = MOVE.NEUTRAL;
 			return move;
+		/**	int current=game.getPacmanCurrentNodeIndex();
+			int closestGhostDistance = 1000;
+			GHOST closestGhost = GHOST.PINKY;
+			for(GHOST ghost : GHOST.values()) {
+	            //if(game.getGhostEdibleTime(ghost)==0 && game.getGhostLairTime(ghost)==0)
+	                if(game.getShortestPathDistance(current,game.getGhostCurrentNodeIndex(ghost))<closestGhostDistance) {
+	                	closestGhost = ghost;
+	                	closestGhostDistance = game.getShortestPathDistance(current,game.getGhostCurrentNodeIndex(ghost));
+	                }
+			}
+	                    return game.getNextMoveAwayFromTarget(game.getPacmanCurrentNodeIndex(),game.getGhostCurrentNodeIndex(closestGhost),DM.PATH);
+	       **/             
 		}
+		//System.out.println(TraverseResult);
 		
-		switch (TraverseResult) {
-		case "LEFT":
+		if (TraverseResult.equals("LEFT")) {
+			System.out.println("LEFT");
 			move = MOVE.LEFT;
-			
-		case "RIGHT":
+		}
+		else if (TraverseResult.equals("RIGHT")) {
+			System.out.println("RIGHT");
 			move = MOVE.RIGHT;
-			
-		case "UP":
+		}
+		else if (TraverseResult.equals("UP")) {
+			System.out.println("UP");
 			move = MOVE.UP;
-			
-		case "DOWN":
+		}
+		else if (TraverseResult.equals("DOWN")) {
+			System.out.println("DOWN");
 			move = MOVE.DOWN;
-			
-		default:
+		}
+		else {
+			System.out.println("NEUTRAL");
 			move = MOVE.NEUTRAL;
 		}
 		return move;

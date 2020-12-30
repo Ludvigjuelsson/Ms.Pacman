@@ -206,6 +206,8 @@ public class Executor
 			}
 
 	        game.advanceGame(pacManController.getMove(),ghostController.getMove());	   
+	        //System.out.println(pacManController.getMove());
+	        
 	        
 	        if(visual)
 	        	gv.repaint();
