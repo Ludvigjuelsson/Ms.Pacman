@@ -68,11 +68,10 @@ public class ID3AIController extends Controller<MOVE>{
 			if (child.getSplitValue() == dataMap.get(attribute)) {
 				childNode = child;
 				break;
-			}
-			
+			}			
 		}
 		if (childNode == null) {
-			System.out.println("Path not in training dataset, could not find target");
+			System.out.println("Path not in training dataset");
 			return null;
 		}
 		return TraverseTree(childNode, dataMap);
@@ -377,7 +376,7 @@ public class ID3AIController extends Controller<MOVE>{
 			//	Incorrect++;
 			}
 		}
-		System.out.println(Correct);
-		System.out.println(Incorrect);
+		System.out.println("Correct: " + Correct);
+		System.out.println("Incorrect: " + Incorrect);
 	}
 }
