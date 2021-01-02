@@ -1,5 +1,8 @@
 package pacman.controllers;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,8 +26,9 @@ public class ID3AIController extends Controller<MOVE>{
 	private int nbrOfNodes=1;
 	private Node RootNode;
 	private MOVE move = MOVE.RIGHT;
+	private static FileWriter writer;
 	
-	public Node GenerateTree(Node node,List <String> oldAttributeList) {
+	public Node GenerateTree(Node node,List <String> oldAttributeList, int depth) {
 		List<LinkedHashMap> processedList=node.getDataSet();
 		List<String> attributeList = new ArrayList<>(oldAttributeList);
 		if (isAllMovesSame(processedList)) {
@@ -53,8 +57,9 @@ public class ID3AIController extends Controller<MOVE>{
 		System.out.println("-------");
 		nbrOfNodes+=childNodes.size();
 		node.setChildren(childNodes);
+		WriteTree("Node Label: " + node.getLabel() + ", value: " + node.getSplitValue(), depth );
 		for (Node child:childNodes) {
-			GenerateTree(child,attributeList);
+			GenerateTree(child,attributeList, depth + 1);
 		}
 		return node;
 		}	
@@ -251,20 +256,20 @@ public class ID3AIController extends Controller<MOVE>{
 		return attributeList;
 	}
 	
-	public List<LinkedHashMap> PreprocessingData(DataTuple[] DataSet) {
+	public List<LinkedHashMap> PreprocessingData(List<DataTuple> trainingData) {
 		List<LinkedHashMap> processedList=new ArrayList<LinkedHashMap>();
-		for (int i=0;i<DataSet.length;i++) {
+		for (DataTuple dataTuple : trainingData) {
 			LinkedHashMap<String,String> map=new LinkedHashMap<String, String>();
-			map.put("PinkyDist",DataSet[i].getPinkyDist().toString());
-			map.put("BlinkyDist", DataSet[i].getBlinkyDist().toString());
-			map.put("SueDist", DataSet[i].getSueDist().toString());
-			map.put("InkyDist", DataSet[i].getInkyDist().toString());
-			map.put("InkyDir", DataSet[i].getInkyDir().toString());
-			map.put("PinkyDir", DataSet[i].getPinkyDir().toString());
-			map.put("BlinkyDir", DataSet[i].getInkyDir().toString());
-			map.put("SueDir", DataSet[i].getSueDir().toString());
-			map.put("BlinkyEdible",Boolean.toString(DataSet[i].isBlinkyEdible()));
-			map.put("Direction",DataSet[i].getDirectionChosen().toString());
+			map.put("PinkyDist",dataTuple.getPinkyDist().toString());
+			map.put("BlinkyDist", dataTuple.getBlinkyDist().toString());
+			map.put("SueDist", dataTuple.getSueDist().toString());
+			map.put("InkyDist", dataTuple.getInkyDist().toString());
+			map.put("InkyDir", dataTuple.getInkyDir().toString());
+			map.put("PinkyDir", dataTuple.getPinkyDir().toString());
+			map.put("BlinkyDir", dataTuple.getInkyDir().toString());
+			map.put("SueDir", dataTuple.getSueDir().toString());
+			map.put("BlinkyEdible",Boolean.toString(dataTuple.isBlinkyEdible()));
+			map.put("Direction",dataTuple.getDirectionChosen().toString());
 			processedList.add(map);
 		}
 		return processedList;
@@ -414,22 +419,60 @@ public class ID3AIController extends Controller<MOVE>{
 		return ((dist - 0) / (double) (150 - 0)) * (1 - 0) + 0;
 	}
 	
+	public static void CreateFile() {
+	    try {
+	        File myObj = new File("myTreeFile.txt");
+	        if (myObj.createNewFile()) {
+	          System.out.println("File created: " + myObj.getName());
+	        } else {
+	          System.out.println("File already exists.");
+	        }
+	      } catch (IOException e) {
+	        System.out.println("An error occurred.");
+	        e.printStackTrace();
+	      }
+	    
+    	try {
+    	      writer = new FileWriter("myTreeFile.txt");
+    	    } catch (IOException e) {
+    	      System.out.println("An error occurred.");
+    	      e.printStackTrace();
+    	    }
+    }
+	
+	public void WriteTree(String text, int depth) {
+		StringBuilder stringBuilder = new StringBuilder();
+		
+		for (int i = 0; i < depth; i++ ) {
+			stringBuilder.append("            ");
+		}
+		stringBuilder.append(text); 
+		try {
+			writer.write(stringBuilder.toString() + "\n");
+			
+		} catch (IOException e) {
+  	      System.out.println("An error occurred while writing with stringBuilder.");
+  	      e.printStackTrace();
+  	    }
+	}
+	
+	
+	
 
 	public static void main(String[] args) {
 		
+		CreateFile();
+		
 		final DataTuple[] DataSet=DataSaverLoader.LoadPacManData();
-		final DataTuple[] TrainingData = new DataTuple [3351];
-		final DataTuple[] TestData = new DataTuple [838];
-		int j=0;
-		int k=0;
+		final List<DataTuple> TrainingData = new ArrayList<DataTuple>();
+		final List<DataTuple>  TestData = new ArrayList<DataTuple>();
+		
 		for (int i = 0; i <  DataSet.length; i++) {
 			if ((i%5)==0) {
-			TestData[j] = DataSet[i];
-			j++;
+			TestData.add(DataSet[i]);
 			}
 			else {
-				TrainingData[k] = DataSet[i];
-				k++;
+				TrainingData.add(DataSet[i]);
 			}
 		}
 		ID3AIController cont=new ID3AIController();
@@ -437,7 +480,7 @@ public class ID3AIController extends Controller<MOVE>{
 		List<LinkedHashMap>processedTestData= cont.PreprocessingData(TestData);
 		List<String>attributeList=cont.setupAttributes();	
 		Node Root=cont.setandgetroot(processedTrainingData);
-		cont.GenerateTree(Root,attributeList);
+		cont.GenerateTree(Root,attributeList, 0);
 		System.out.println("Number of attributes: " + attributeList.size() );
 		System.out.println("Number of created nodes: "+ cont.getNbrOfNodes());
 		int Correct = 0;
@@ -449,15 +492,16 @@ public class ID3AIController extends Controller<MOVE>{
 					Correct++;
 				}
 				else {
-					System.out.println("Result from tree: " + TraverseResult+ " Result from testdata: " +processedTestData.get(i).get("Direction"));
+					//System.out.println("Result from tree: " + TraverseResult+ " Result from testdata: " +processedTestData.get(i).get("Direction"));
 					Incorrect++;
 				}
 			}else {
 				Incorrect++;
-				System.out.println("Result from tree: " + TraverseResult+ " Result from testdata: " +processedTestData.get(i).get("Direction"));
+				//System.out.println("Result from tree: " + TraverseResult+ " Result from testdata: " +processedTestData.get(i).get("Direction"));
 			}
 		}
 		System.out.println("Correct: " + Correct);
 		System.out.println("Incorrect: " + Incorrect);
+		System.out.println(("Correct percentage: " + ((double)Correct/(double)(Correct+Incorrect))*100) + "%" );
 	}
 }

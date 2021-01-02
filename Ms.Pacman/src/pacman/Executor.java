@@ -70,12 +70,17 @@ public class Executor
 		//run the game in asynchronous mode.
 		boolean visual=true;
 		final DataTuple[] DataSet=DataSaverLoader.LoadPacManData();
+		final List<DataTuple> TrainingData = new ArrayList<DataTuple>();
+
+		for (int i = 0; i < DataSet.length; i++) {
+			TrainingData.add(DataSet[i]);
+		}
 
 		ID3AIController cont=new ID3AIController();
-		List<LinkedHashMap>processedTrainingData= cont.PreprocessingData(DataSet);
+		List<LinkedHashMap>processedTrainingData= cont.PreprocessingData(TrainingData);
 		List<String>attributeList=cont.setupAttributes();	
 		Node Root=cont.setandgetroot(processedTrainingData);
-		cont.GenerateTree(Root,attributeList);
+		cont.GenerateTree(Root,attributeList, 0);
 		System.out.println("Number of attributes: " + attributeList.size() );
 		System.out.println("Number of created nodes: "+ cont.getNbrOfNodes());
 //		exec.runGameTimed(new NearestPillPacMan(),new AggressiveGhosts(),visual);
@@ -100,8 +105,8 @@ public class Executor
 		 */
 		
 		//run game for data collection
-		//exec.runGameTimed(new DataCollectorController(new KeyBoardInput()),new StarterGhosts(),visual);
-		exec.runGameTimed(cont,new StarterGhosts(),visual);
+		exec.runGameTimed(new DataCollectorController(new KeyBoardInput()),new StarterGhosts(),visual);
+		//exec.runGameTimed(cont,new StarterGhosts(),visual);
 	}
 	
     /**
