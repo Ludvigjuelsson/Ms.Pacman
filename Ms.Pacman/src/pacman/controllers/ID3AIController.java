@@ -45,16 +45,16 @@ public class ID3AIController extends Controller<MOVE>{
 			}
 
 		String currentAttribute= SelectAttribute(processedList, attributeList);// attributeList.get(0);
-		node.setLabel(currentAttribute); // change to get the one with least entropy 
+		node.setLabel(currentAttribute);
 		attributeList.remove(currentAttribute);
-		System.out.println("-------");
+		System.out.println("--");
 		System.out.println("Node Label: " + currentAttribute);
 		List<Node> childNodes = CreateChildNodes(processedList,currentAttribute);
 		System.out.println("Creating: " + childNodes.size() + " children");
 		for (Node child : childNodes) {
 			System.out.println(child.getSplitValue());
 		}
-		System.out.println("-------");
+		System.out.println("--");
 		nbrOfNodes+=childNodes.size();
 		node.setChildren(childNodes);
 		WriteTree("Node Label: " + node.getLabel() + ", value: " + node.getSplitValue(), depth );
@@ -62,7 +62,7 @@ public class ID3AIController extends Controller<MOVE>{
 			GenerateTree(child,attributeList, depth + 1);
 		}
 		return node;
-		}	
+	}	
 	
 	public String TraverseTree(Node node, LinkedHashMap dataMap) {
 		String attribute = node.getLabel();
@@ -252,6 +252,10 @@ public class ID3AIController extends Controller<MOVE>{
 		attributeList.add("BlinkyDir");
 		attributeList.add("SueDir");
 		attributeList.add("BlinkyEdible");
+		attributeList.add("PinkyEdible");
+		attributeList.add("InkyEdible");
+		attributeList.add("SueEdible");
+		
 		//attributeList.add("Direction");
 		return attributeList;
 	}
@@ -269,6 +273,9 @@ public class ID3AIController extends Controller<MOVE>{
 			map.put("BlinkyDir", dataTuple.getInkyDir().toString());
 			map.put("SueDir", dataTuple.getSueDir().toString());
 			map.put("BlinkyEdible",Boolean.toString(dataTuple.isBlinkyEdible()));
+			map.put("InkyEdible",Boolean.toString(dataTuple.isInkyEdible()));
+			map.put("PinkyEdible",Boolean.toString(dataTuple.isPinkyEdible()));
+			map.put("SueEdible",Boolean.toString(dataTuple.isSueEdible()));
 			map.put("Direction",dataTuple.getDirectionChosen().toString());
 			processedList.add(map);
 		}
@@ -295,6 +302,9 @@ public class ID3AIController extends Controller<MOVE>{
 		map.put("BlinkyDir",game.getNextMoveTowardsTarget(game.getPacmanCurrentNodeIndex(), game.getGhostCurrentNodeIndex(GHOST.BLINKY), DM.PATH).toString());
 		map.put("SueDir", game.getNextMoveTowardsTarget(game.getPacmanCurrentNodeIndex(), game.getGhostCurrentNodeIndex(GHOST.SUE), DM.PATH).toString());
 		map.put("BlinkyEdible",Boolean.toString(game.isGhostEdible(GHOST.BLINKY)));
+		map.put("InkyEdible",Boolean.toString(game.isGhostEdible(GHOST.INKY)));
+		map.put("PinkyEdible",Boolean.toString(game.isGhostEdible(GHOST.PINKY)));
+		map.put("SueEdible",Boolean.toString(game.isGhostEdible(GHOST.SUE)));
 		String TraverseResult = TraverseTree(RootNode,map);
 		
 		if (TraverseResult == null) {
@@ -503,5 +513,6 @@ public class ID3AIController extends Controller<MOVE>{
 		System.out.println("Correct: " + Correct);
 		System.out.println("Incorrect: " + Incorrect);
 		System.out.println(("Correct percentage: " + ((double)Correct/(double)(Correct+Incorrect))*100) + "%" );
+
 	}
 }

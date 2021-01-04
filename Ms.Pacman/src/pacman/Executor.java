@@ -75,8 +75,8 @@ public class Executor
 		for (int i = 0; i < DataSet.length; i++) {
 			TrainingData.add(DataSet[i]);
 		}
-
 		ID3AIController cont=new ID3AIController();
+		ID3AIController.CreateFile();
 		List<LinkedHashMap>processedTrainingData= cont.PreprocessingData(TrainingData);
 		List<String>attributeList=cont.setupAttributes();	
 		Node Root=cont.setandgetroot(processedTrainingData);
@@ -105,8 +105,8 @@ public class Executor
 		 */
 		
 		//run game for data collection
-		exec.runGameTimed(new DataCollectorController(new KeyBoardInput()),new StarterGhosts(),visual);
-		//exec.runGameTimed(cont,new StarterGhosts(),visual);
+		//exec.runGameTimed(new DataCollectorController(new KeyBoardInput()),new StarterGhosts(),visual);
+		exec.runGameTimed(cont,new StarterGhosts(),visual);
 	}
 	
     /**
